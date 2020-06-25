@@ -6,7 +6,7 @@ This repo contains the pg_dumps of some Postgres projects used to benchmark and 
 The original experiment environment was a combination of [Postgress.app](https://postgresapp.com/) (Using Postgres 12) and [DBeaver Community Edition](https://dbeaver.io/).
 
 ##  Restoring these dumps
-As stated, this repo contains sql dumps were created using the `pg_dump` command ([docs](https://www.postgresql.org/docs/12/app-pgdump.html)). To restore them into your database, create a new database instance in your postgres server, delete the default `public` schema and run feed the dump to `psql` ([tutorial](https://www.postgresqltutorial.com/postgresql-restore-database/)).
+As stated, this repo contains sql dumps that were created using the `pg_dump` command ([docs](https://www.postgresql.org/docs/12/app-pgdump.html)). To restore them into your database, create a new database instance in your postgres server, delete the default `public` schema and feed any dump to `psql` ([tutorial](https://www.postgresqltutorial.com/postgresql-restore-database/)).
 
 It's also easy to restore in DBeaver using the `Execute Script` feature.
 
