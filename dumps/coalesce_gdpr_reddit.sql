@@ -5,7 +5,7 @@
 -- Dumped from database version 12.3
 -- Dumped by pg_dump version 12.3
 
--- Started on 2020-06-25 14:04:44 EDT
+-- Started on 2020-07-01 13:44:06 EDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,7 +19,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 6 (class 2615 OID 20265)
+-- TOC entry 6 (class 2615 OID 617179)
 -- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -29,7 +29,7 @@ CREATE SCHEMA public;
 ALTER SCHEMA public OWNER TO postgres;
 
 --
--- TOC entry 3315 (class 0 OID 0)
+-- TOC entry 3317 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: postgres
 --
@@ -38,7 +38,7 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 
 
 --
--- TOC entry 5 (class 2615 OID 20266)
+-- TOC entry 8 (class 2615 OID 617180)
 -- Name: shards; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -48,7 +48,7 @@ CREATE SCHEMA shards;
 ALTER SCHEMA shards OWNER TO postgres;
 
 --
--- TOC entry 232 (class 1255 OID 20267)
+-- TOC entry 230 (class 1255 OID 617181)
 -- Name: comment(integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -65,7 +65,7 @@ $_$;
 ALTER FUNCTION public.comment(user_id integer, post_id integer, content character varying) OWNER TO postgres;
 
 --
--- TOC entry 233 (class 1255 OID 20268)
+-- TOC entry 249 (class 1255 OID 617182)
 -- Name: create_user(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -81,25 +81,25 @@ BEGIN
   --Making the comments shard table
    q := format('CREATE TABLE shards.%I PARTITION OF "sharded_comments"', 'comments_' || cast(counter as TEXT));
   q:= q || format(' FOR VALUES IN (%L)', counter);
-   RAISE NOTICE 'Creating comments partition: %', q;
+   --RAISE NOTICE 'Creating comments partition: %', q;
    EXECUTE q;
   
   --Making the shards table for posts
      q := format('CREATE TABLE shards.%I PARTITION OF "sharded_posts"', 'posts_' || cast(counter as TEXT));
   q:= q || format(' FOR VALUES IN (%L)', counter);
-   RAISE NOTICE 'Creating posts partition: %', q;
+   --RAISE NOTICE 'Creating posts partition: %', q;
    EXECUTE q;
   
     --Making the shards table for liked_posts
      q := format('CREATE TABLE shards.%I PARTITION OF "sharded_liked_posts"', 'liked_posts_' || cast(counter as TEXT));
   q:= q || format(' FOR VALUES IN (%L)', counter);
-   RAISE NOTICE 'Creating liked posts partition: %', q;
+   --RAISE NOTICE 'Creating liked posts partition: %', q;
    EXECUTE q;
   
     --Making the shards table for liked_comments
      q := format('CREATE TABLE shards.%I PARTITION OF "sharded_liked_comments"', 'liked_comments_' || cast(counter as TEXT));
   q:= q || format(' FOR VALUES IN (%L)', counter);
-   RAISE NOTICE 'Creating liked comments partition: %', q;
+   --RAISE NOTICE 'Creating liked comments partition: %', q;
    EXECUTE q;
 END;
 $_$;
@@ -108,7 +108,7 @@ $_$;
 ALTER FUNCTION public.create_user(username_value character varying) OWNER TO postgres;
 
 --
--- TOC entry 234 (class 1255 OID 20269)
+-- TOC entry 231 (class 1255 OID 617183)
 -- Name: decrement_comment_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -128,7 +128,7 @@ $$;
 ALTER FUNCTION public.decrement_comment_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 235 (class 1255 OID 20270)
+-- TOC entry 232 (class 1255 OID 617184)
 -- Name: decrement_post_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -148,7 +148,7 @@ $$;
 ALTER FUNCTION public.decrement_post_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 236 (class 1255 OID 20271)
+-- TOC entry 233 (class 1255 OID 617185)
 -- Name: del_update_sharded_comments(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -166,7 +166,7 @@ $$;
 ALTER FUNCTION public.del_update_sharded_comments() OWNER TO postgres;
 
 --
--- TOC entry 237 (class 1255 OID 20272)
+-- TOC entry 234 (class 1255 OID 617186)
 -- Name: del_update_sharded_liked_comments(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -183,7 +183,7 @@ $$;
 ALTER FUNCTION public.del_update_sharded_liked_comments() OWNER TO postgres;
 
 --
--- TOC entry 238 (class 1255 OID 20273)
+-- TOC entry 235 (class 1255 OID 617187)
 -- Name: del_update_sharded_liked_posts(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -200,7 +200,7 @@ $$;
 ALTER FUNCTION public.del_update_sharded_liked_posts() OWNER TO postgres;
 
 --
--- TOC entry 239 (class 1255 OID 20274)
+-- TOC entry 236 (class 1255 OID 617188)
 -- Name: del_update_sharded_posts(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -217,7 +217,24 @@ $$;
 ALTER FUNCTION public.del_update_sharded_posts() OWNER TO postgres;
 
 --
--- TOC entry 240 (class 1255 OID 20275)
+-- TOC entry 237 (class 1255 OID 617189)
+-- Name: get_user_shard(integer); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.get_user_shard(integer) RETURNS void
+    LANGUAGE plpgsql
+    AS $_$ begin
+	perform * from sharded_posts p where p.owner_id  = $1;
+	perform * from sharded_liked_comments lc where lc.user_id  = $1;
+	perform * from sharded_liked_posts lp where lp.user_id = $1;
+	perform * from "sharded_comments" c where c.poster_id = $1;
+end;$_$;
+
+
+ALTER FUNCTION public.get_user_shard(integer) OWNER TO postgres;
+
+--
+-- TOC entry 238 (class 1255 OID 617190)
 -- Name: increment_comment_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -237,7 +254,7 @@ $$;
 ALTER FUNCTION public.increment_comment_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 241 (class 1255 OID 20276)
+-- TOC entry 239 (class 1255 OID 617191)
 -- Name: increment_post_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -257,7 +274,7 @@ $$;
 ALTER FUNCTION public.increment_post_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 242 (class 1255 OID 20277)
+-- TOC entry 240 (class 1255 OID 617192)
 -- Name: like_comment(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -273,7 +290,7 @@ $_$;
 ALTER FUNCTION public.like_comment(user_id integer, comment_id integer) OWNER TO postgres;
 
 --
--- TOC entry 243 (class 1255 OID 20278)
+-- TOC entry 241 (class 1255 OID 617193)
 -- Name: like_post(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -289,7 +306,7 @@ $_$;
 ALTER FUNCTION public.like_post(user_id integer, post_id integer) OWNER TO postgres;
 
 --
--- TOC entry 244 (class 1255 OID 20279)
+-- TOC entry 242 (class 1255 OID 617194)
 -- Name: post(integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -306,7 +323,7 @@ $_$;
 ALTER FUNCTION public.post(user_id integer, content character varying) OWNER TO postgres;
 
 --
--- TOC entry 245 (class 1255 OID 20280)
+-- TOC entry 243 (class 1255 OID 617195)
 -- Name: unlike_comment(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -323,7 +340,7 @@ $_$;
 ALTER FUNCTION public.unlike_comment(user_id integer, comment_id integer) OWNER TO postgres;
 
 --
--- TOC entry 246 (class 1255 OID 20281)
+-- TOC entry 244 (class 1255 OID 617196)
 -- Name: unlike_post(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -340,7 +357,7 @@ $_$;
 ALTER FUNCTION public.unlike_post(user_id integer, post_id integer) OWNER TO postgres;
 
 --
--- TOC entry 247 (class 1255 OID 20282)
+-- TOC entry 245 (class 1255 OID 617197)
 -- Name: update_sharded_comments(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -360,7 +377,7 @@ $$;
 ALTER FUNCTION public.update_sharded_comments() OWNER TO postgres;
 
 --
--- TOC entry 230 (class 1255 OID 20283)
+-- TOC entry 246 (class 1255 OID 617198)
 -- Name: update_sharded_liked_comments(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -378,7 +395,7 @@ $$;
 ALTER FUNCTION public.update_sharded_liked_comments() OWNER TO postgres;
 
 --
--- TOC entry 231 (class 1255 OID 20284)
+-- TOC entry 247 (class 1255 OID 617199)
 -- Name: update_sharded_liked_posts(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -396,7 +413,7 @@ $$;
 ALTER FUNCTION public.update_sharded_liked_posts() OWNER TO postgres;
 
 --
--- TOC entry 248 (class 1255 OID 20285)
+-- TOC entry 248 (class 1255 OID 617200)
 -- Name: update_sharded_posts(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -420,7 +437,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 203 (class 1259 OID 20286)
+-- TOC entry 203 (class 1259 OID 617201)
 -- Name: comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -437,7 +454,7 @@ CREATE TABLE public.comments (
 ALTER TABLE public.comments OWNER TO postgres;
 
 --
--- TOC entry 204 (class 1259 OID 20292)
+-- TOC entry 204 (class 1259 OID 617207)
 -- Name: comments_comment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -453,7 +470,7 @@ CREATE SEQUENCE public.comments_comment_id_seq
 ALTER TABLE public.comments_comment_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3316 (class 0 OID 0)
+-- TOC entry 3318 (class 0 OID 0)
 -- Dependencies: 204
 -- Name: comments_comment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -462,7 +479,7 @@ ALTER SEQUENCE public.comments_comment_id_seq OWNED BY public.comments.comment_i
 
 
 --
--- TOC entry 205 (class 1259 OID 20294)
+-- TOC entry 205 (class 1259 OID 617209)
 -- Name: liked_comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -475,7 +492,7 @@ CREATE TABLE public.liked_comments (
 ALTER TABLE public.liked_comments OWNER TO postgres;
 
 --
--- TOC entry 206 (class 1259 OID 20297)
+-- TOC entry 206 (class 1259 OID 617212)
 -- Name: liked_posts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -488,7 +505,7 @@ CREATE TABLE public.liked_posts (
 ALTER TABLE public.liked_posts OWNER TO postgres;
 
 --
--- TOC entry 207 (class 1259 OID 20300)
+-- TOC entry 207 (class 1259 OID 617215)
 -- Name: posts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -504,7 +521,7 @@ CREATE TABLE public.posts (
 ALTER TABLE public.posts OWNER TO postgres;
 
 --
--- TOC entry 208 (class 1259 OID 20306)
+-- TOC entry 208 (class 1259 OID 617221)
 -- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -520,7 +537,7 @@ CREATE SEQUENCE public.posts_id_seq
 ALTER TABLE public.posts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3317 (class 0 OID 0)
+-- TOC entry 3319 (class 0 OID 0)
 -- Dependencies: 208
 -- Name: posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -529,7 +546,7 @@ ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
 
 
 --
--- TOC entry 209 (class 1259 OID 20308)
+-- TOC entry 209 (class 1259 OID 617223)
 -- Name: sharded_comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -547,7 +564,7 @@ PARTITION BY LIST (poster_id);
 ALTER TABLE public.sharded_comments OWNER TO postgres;
 
 --
--- TOC entry 210 (class 1259 OID 20311)
+-- TOC entry 210 (class 1259 OID 617226)
 -- Name: sharded_comments_comment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -563,7 +580,7 @@ CREATE SEQUENCE public.sharded_comments_comment_id_seq
 ALTER TABLE public.sharded_comments_comment_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3318 (class 0 OID 0)
+-- TOC entry 3320 (class 0 OID 0)
 -- Dependencies: 210
 -- Name: sharded_comments_comment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -572,7 +589,7 @@ ALTER SEQUENCE public.sharded_comments_comment_id_seq OWNED BY public.sharded_co
 
 
 --
--- TOC entry 211 (class 1259 OID 20313)
+-- TOC entry 211 (class 1259 OID 617228)
 -- Name: sharded_liked_comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -586,7 +603,7 @@ PARTITION BY LIST (user_id);
 ALTER TABLE public.sharded_liked_comments OWNER TO postgres;
 
 --
--- TOC entry 212 (class 1259 OID 20316)
+-- TOC entry 212 (class 1259 OID 617231)
 -- Name: sharded_liked_posts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -600,7 +617,7 @@ PARTITION BY LIST (user_id);
 ALTER TABLE public.sharded_liked_posts OWNER TO postgres;
 
 --
--- TOC entry 213 (class 1259 OID 20319)
+-- TOC entry 213 (class 1259 OID 617234)
 -- Name: sharded_posts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -617,7 +634,7 @@ PARTITION BY LIST (owner_id);
 ALTER TABLE public.sharded_posts OWNER TO postgres;
 
 --
--- TOC entry 214 (class 1259 OID 20322)
+-- TOC entry 214 (class 1259 OID 617237)
 -- Name: sharded_posts_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -633,7 +650,7 @@ CREATE SEQUENCE public.sharded_posts_id_seq
 ALTER TABLE public.sharded_posts_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3319 (class 0 OID 0)
+-- TOC entry 3321 (class 0 OID 0)
 -- Dependencies: 214
 -- Name: sharded_posts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -642,7 +659,7 @@ ALTER SEQUENCE public.sharded_posts_id_seq OWNED BY public.sharded_posts.id;
 
 
 --
--- TOC entry 215 (class 1259 OID 20324)
+-- TOC entry 215 (class 1259 OID 617239)
 -- Name: top_10_posts; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -660,7 +677,7 @@ CREATE VIEW public.top_10_posts AS
 ALTER TABLE public.top_10_posts OWNER TO postgres;
 
 --
--- TOC entry 216 (class 1259 OID 20328)
+-- TOC entry 216 (class 1259 OID 617243)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -674,7 +691,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 217 (class 1259 OID 20334)
+-- TOC entry 217 (class 1259 OID 617249)
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -690,7 +707,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER TABLE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 3320 (class 0 OID 0)
+-- TOC entry 3322 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -699,7 +716,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 3126 (class 2604 OID 20336)
+-- TOC entry 3127 (class 2604 OID 617251)
 -- Name: comments comment_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -707,7 +724,7 @@ ALTER TABLE ONLY public.comments ALTER COLUMN comment_id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3127 (class 2604 OID 20337)
+-- TOC entry 3128 (class 2604 OID 617252)
 -- Name: posts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -715,7 +732,7 @@ ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_
 
 
 --
--- TOC entry 3128 (class 2604 OID 20338)
+-- TOC entry 3129 (class 2604 OID 617253)
 -- Name: sharded_comments comment_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -723,7 +740,7 @@ ALTER TABLE ONLY public.sharded_comments ALTER COLUMN comment_id SET DEFAULT nex
 
 
 --
--- TOC entry 3129 (class 2604 OID 20339)
+-- TOC entry 3130 (class 2604 OID 617254)
 -- Name: sharded_posts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -731,7 +748,7 @@ ALTER TABLE ONLY public.sharded_posts ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
--- TOC entry 3130 (class 2604 OID 20340)
+-- TOC entry 3131 (class 2604 OID 617255)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -739,7 +756,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 3300 (class 0 OID 20286)
+-- TOC entry 3302 (class 0 OID 617201)
 -- Dependencies: 203
 -- Data for Name: comments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -749,7 +766,7 @@ COPY public.comments (comment_id, content, date_of_creation, likes, post_id, pos
 
 
 --
--- TOC entry 3302 (class 0 OID 20294)
+-- TOC entry 3304 (class 0 OID 617209)
 -- Dependencies: 205
 -- Data for Name: liked_comments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -759,7 +776,7 @@ COPY public.liked_comments (user_id, comment_id) FROM stdin;
 
 
 --
--- TOC entry 3303 (class 0 OID 20297)
+-- TOC entry 3305 (class 0 OID 617212)
 -- Dependencies: 206
 -- Data for Name: liked_posts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -769,7 +786,7 @@ COPY public.liked_posts (user_id, post_id) FROM stdin;
 
 
 --
--- TOC entry 3304 (class 0 OID 20300)
+-- TOC entry 3306 (class 0 OID 617215)
 -- Dependencies: 207
 -- Data for Name: posts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -779,7 +796,7 @@ COPY public.posts (id, owner_id, content, likes, date_of_creation) FROM stdin;
 
 
 --
--- TOC entry 3308 (class 0 OID 20328)
+-- TOC entry 3310 (class 0 OID 617243)
 -- Dependencies: 216
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -789,7 +806,7 @@ COPY public.users (id, username, date_of_creation) FROM stdin;
 
 
 --
--- TOC entry 3321 (class 0 OID 0)
+-- TOC entry 3323 (class 0 OID 0)
 -- Dependencies: 204
 -- Name: comments_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -798,7 +815,7 @@ SELECT pg_catalog.setval('public.comments_comment_id_seq', 1, false);
 
 
 --
--- TOC entry 3322 (class 0 OID 0)
+-- TOC entry 3324 (class 0 OID 0)
 -- Dependencies: 208
 -- Name: posts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -807,7 +824,7 @@ SELECT pg_catalog.setval('public.posts_id_seq', 1, false);
 
 
 --
--- TOC entry 3323 (class 0 OID 0)
+-- TOC entry 3325 (class 0 OID 0)
 -- Dependencies: 210
 -- Name: sharded_comments_comment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -816,7 +833,7 @@ SELECT pg_catalog.setval('public.sharded_comments_comment_id_seq', 1, false);
 
 
 --
--- TOC entry 3324 (class 0 OID 0)
+-- TOC entry 3326 (class 0 OID 0)
 -- Dependencies: 214
 -- Name: sharded_posts_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -825,7 +842,7 @@ SELECT pg_catalog.setval('public.sharded_posts_id_seq', 1, false);
 
 
 --
--- TOC entry 3325 (class 0 OID 0)
+-- TOC entry 3327 (class 0 OID 0)
 -- Dependencies: 217
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -834,7 +851,7 @@ SELECT pg_catalog.setval('public.users_id_seq', 1, false);
 
 
 --
--- TOC entry 3132 (class 2606 OID 20342)
+-- TOC entry 3133 (class 2606 OID 617257)
 -- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -843,7 +860,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3134 (class 2606 OID 20344)
+-- TOC entry 3136 (class 2606 OID 617259)
 -- Name: liked_comments liked_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -852,7 +869,7 @@ ALTER TABLE ONLY public.liked_comments
 
 
 --
--- TOC entry 3136 (class 2606 OID 20346)
+-- TOC entry 3138 (class 2606 OID 617261)
 -- Name: liked_posts liked_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -861,7 +878,7 @@ ALTER TABLE ONLY public.liked_posts
 
 
 --
--- TOC entry 3139 (class 2606 OID 20348)
+-- TOC entry 3141 (class 2606 OID 617263)
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -870,7 +887,7 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- TOC entry 3141 (class 2606 OID 20350)
+-- TOC entry 3143 (class 2606 OID 617265)
 -- Name: sharded_comments sharded_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -879,7 +896,7 @@ ALTER TABLE ONLY public.sharded_comments
 
 
 --
--- TOC entry 3143 (class 2606 OID 20352)
+-- TOC entry 3145 (class 2606 OID 617267)
 -- Name: sharded_liked_comments sharded_liked_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -888,7 +905,7 @@ ALTER TABLE ONLY public.sharded_liked_comments
 
 
 --
--- TOC entry 3145 (class 2606 OID 20354)
+-- TOC entry 3147 (class 2606 OID 617269)
 -- Name: sharded_liked_posts sharded_liked_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -897,7 +914,7 @@ ALTER TABLE ONLY public.sharded_liked_posts
 
 
 --
--- TOC entry 3147 (class 2606 OID 20356)
+-- TOC entry 3149 (class 2606 OID 617271)
 -- Name: sharded_posts sharded_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -906,7 +923,7 @@ ALTER TABLE ONLY public.sharded_posts
 
 
 --
--- TOC entry 3149 (class 2606 OID 20358)
+-- TOC entry 3151 (class 2606 OID 617273)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -915,7 +932,15 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3137 (class 1259 OID 20359)
+-- TOC entry 3134 (class 1259 OID 617274)
+-- Name: comments_post_id_idx; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX comments_post_id_idx ON public.comments USING hash (post_id);
+
+
+--
+-- TOC entry 3139 (class 1259 OID 617275)
 -- Name: like_index; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -923,7 +948,7 @@ CREATE INDEX like_index ON public.posts USING btree (likes);
 
 
 --
--- TOC entry 3163 (class 2620 OID 20360)
+-- TOC entry 3165 (class 2620 OID 617276)
 -- Name: liked_comments add_to_comment_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -931,7 +956,7 @@ CREATE TRIGGER add_to_comment_like AFTER INSERT ON public.liked_comments FOR EAC
 
 
 --
--- TOC entry 3167 (class 2620 OID 20361)
+-- TOC entry 3169 (class 2620 OID 617277)
 -- Name: liked_posts add_to_post_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -939,7 +964,7 @@ CREATE TRIGGER add_to_post_like AFTER INSERT ON public.liked_posts FOR EACH ROW 
 
 
 --
--- TOC entry 3161 (class 2620 OID 20362)
+-- TOC entry 3163 (class 2620 OID 617278)
 -- Name: comments del_update_sharded_comments; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -947,7 +972,7 @@ CREATE TRIGGER del_update_sharded_comments AFTER DELETE ON public.comments FOR E
 
 
 --
--- TOC entry 3164 (class 2620 OID 20363)
+-- TOC entry 3166 (class 2620 OID 617279)
 -- Name: liked_comments del_update_sharded_liked_comments; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -955,7 +980,7 @@ CREATE TRIGGER del_update_sharded_liked_comments AFTER DELETE ON public.liked_co
 
 
 --
--- TOC entry 3168 (class 2620 OID 20364)
+-- TOC entry 3170 (class 2620 OID 617280)
 -- Name: liked_posts del_update_sharded_liked_posts; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -963,7 +988,7 @@ CREATE TRIGGER del_update_sharded_liked_posts AFTER DELETE ON public.liked_posts
 
 
 --
--- TOC entry 3171 (class 2620 OID 20365)
+-- TOC entry 3173 (class 2620 OID 617281)
 -- Name: posts del_update_sharded_posts; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -971,7 +996,7 @@ CREATE TRIGGER del_update_sharded_posts AFTER DELETE ON public.posts FOR EACH RO
 
 
 --
--- TOC entry 3165 (class 2620 OID 20366)
+-- TOC entry 3167 (class 2620 OID 617282)
 -- Name: liked_comments subtract_from_comment_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -979,7 +1004,7 @@ CREATE TRIGGER subtract_from_comment_like AFTER DELETE ON public.liked_comments 
 
 
 --
--- TOC entry 3169 (class 2620 OID 20367)
+-- TOC entry 3171 (class 2620 OID 617283)
 -- Name: liked_posts subtract_from_post_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -987,7 +1012,7 @@ CREATE TRIGGER subtract_from_post_like AFTER DELETE ON public.liked_posts FOR EA
 
 
 --
--- TOC entry 3162 (class 2620 OID 20368)
+-- TOC entry 3164 (class 2620 OID 617284)
 -- Name: comments update_sharded_comments; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -995,7 +1020,7 @@ CREATE TRIGGER update_sharded_comments AFTER INSERT OR UPDATE ON public.comments
 
 
 --
--- TOC entry 3166 (class 2620 OID 20369)
+-- TOC entry 3168 (class 2620 OID 617285)
 -- Name: liked_comments update_sharded_liked_comments; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1003,7 +1028,7 @@ CREATE TRIGGER update_sharded_liked_comments AFTER INSERT ON public.liked_commen
 
 
 --
--- TOC entry 3170 (class 2620 OID 20370)
+-- TOC entry 3172 (class 2620 OID 617286)
 -- Name: liked_posts update_sharded_liked_posts; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1011,7 +1036,7 @@ CREATE TRIGGER update_sharded_liked_posts AFTER INSERT ON public.liked_posts FOR
 
 
 --
--- TOC entry 3172 (class 2620 OID 20371)
+-- TOC entry 3174 (class 2620 OID 617287)
 -- Name: posts update_sharded_posts; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -1019,7 +1044,7 @@ CREATE TRIGGER update_sharded_posts AFTER INSERT OR UPDATE ON public.posts FOR E
 
 
 --
--- TOC entry 3150 (class 2606 OID 20372)
+-- TOC entry 3152 (class 2606 OID 617288)
 -- Name: comments comments_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1028,7 +1053,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3151 (class 2606 OID 20377)
+-- TOC entry 3153 (class 2606 OID 617293)
 -- Name: comments comments_poster_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1037,7 +1062,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3152 (class 2606 OID 20382)
+-- TOC entry 3154 (class 2606 OID 617298)
 -- Name: liked_comments liked_comments_comment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1046,7 +1071,7 @@ ALTER TABLE ONLY public.liked_comments
 
 
 --
--- TOC entry 3153 (class 2606 OID 20387)
+-- TOC entry 3155 (class 2606 OID 617303)
 -- Name: liked_comments liked_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1055,7 +1080,7 @@ ALTER TABLE ONLY public.liked_comments
 
 
 --
--- TOC entry 3154 (class 2606 OID 20392)
+-- TOC entry 3156 (class 2606 OID 617308)
 -- Name: liked_posts liked_posts_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1064,7 +1089,7 @@ ALTER TABLE ONLY public.liked_posts
 
 
 --
--- TOC entry 3155 (class 2606 OID 20397)
+-- TOC entry 3157 (class 2606 OID 617313)
 -- Name: liked_posts liked_posts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1073,7 +1098,7 @@ ALTER TABLE ONLY public.liked_posts
 
 
 --
--- TOC entry 3157 (class 2606 OID 20402)
+-- TOC entry 3159 (class 2606 OID 617318)
 -- Name: sharded_comments sharded_comments_poster_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1082,7 +1107,7 @@ ALTER TABLE public.sharded_comments
 
 
 --
--- TOC entry 3158 (class 2606 OID 20405)
+-- TOC entry 3160 (class 2606 OID 617321)
 -- Name: sharded_liked_comments sharded_liked_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1091,7 +1116,7 @@ ALTER TABLE public.sharded_liked_comments
 
 
 --
--- TOC entry 3159 (class 2606 OID 20408)
+-- TOC entry 3161 (class 2606 OID 617324)
 -- Name: sharded_liked_posts sharded_liked_posts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1100,7 +1125,7 @@ ALTER TABLE public.sharded_liked_posts
 
 
 --
--- TOC entry 3160 (class 2606 OID 20411)
+-- TOC entry 3162 (class 2606 OID 617327)
 -- Name: sharded_posts sharded_posts_owner_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1109,7 +1134,7 @@ ALTER TABLE public.sharded_posts
 
 
 --
--- TOC entry 3156 (class 2606 OID 20414)
+-- TOC entry 3158 (class 2606 OID 617330)
 -- Name: posts user_foreign_key; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -1117,7 +1142,7 @@ ALTER TABLE ONLY public.posts
     ADD CONSTRAINT user_foreign_key FOREIGN KEY (owner_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
--- Completed on 2020-06-25 14:04:44 EDT
+-- Completed on 2020-07-01 13:44:06 EDT
 
 --
 -- PostgreSQL database dump complete
