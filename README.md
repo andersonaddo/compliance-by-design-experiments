@@ -22,7 +22,7 @@ As stated, this repo contains sql dumps that were created using the `pg_dump` co
 It's also easy to restore in DBeaver using the `Execute Script` feature.
 
 ## Benchmarking the dumps
-Benchmarking was done using pgbench. More information about the parameters can be found in README in the `benchmarking_files` folder.
+Benchmarking was done using pgbench. More information about the parameters can be found in the folder than contains the benchmarking scripts.
 
 This query can use useful in getting the sized of all of a db's tables after the benchmarks:
 
