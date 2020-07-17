@@ -5,7 +5,7 @@
 -- Dumped from database version 12.3
 -- Dumped by pg_dump version 12.3
 
--- Started on 2020-07-14 15:07:17 EDT
+-- Started on 2020-07-17 14:18:58 EDT
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,7 +19,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- TOC entry 6 (class 2615 OID 1003458)
+-- TOC entry 6 (class 2615 OID 1005638)
 -- Name: public; Type: SCHEMA; Schema: -; Owner: postgres
 --
 
@@ -38,7 +38,7 @@ COMMENT ON SCHEMA public IS 'standard public schema';
 
 
 --
--- TOC entry 283 (class 1255 OID 1003584)
+-- TOC entry 283 (class 1255 OID 1005884)
 -- Name: comment(integer, integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -55,7 +55,7 @@ $_$;
 ALTER FUNCTION public.comment(user_id integer, post_id integer, content character varying) OWNER TO postgres;
 
 --
--- TOC entry 284 (class 1255 OID 1003585)
+-- TOC entry 284 (class 1255 OID 1005885)
 -- Name: create_user(character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -73,7 +73,7 @@ $_$;
 ALTER FUNCTION public.create_user(username_value character varying) OWNER TO postgres;
 
 --
--- TOC entry 285 (class 1255 OID 1003586)
+-- TOC entry 285 (class 1255 OID 1005886)
 -- Name: decrement_comment_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -93,7 +93,7 @@ $$;
 ALTER FUNCTION public.decrement_comment_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 286 (class 1255 OID 1003587)
+-- TOC entry 286 (class 1255 OID 1005887)
 -- Name: decrement_post_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -113,7 +113,7 @@ $$;
 ALTER FUNCTION public.decrement_post_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 287 (class 1255 OID 1003588)
+-- TOC entry 287 (class 1255 OID 1005888)
 -- Name: get_user_shard(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -130,7 +130,7 @@ end;$_$;
 ALTER FUNCTION public.get_user_shard(integer) OWNER TO postgres;
 
 --
--- TOC entry 288 (class 1255 OID 1003589)
+-- TOC entry 288 (class 1255 OID 1005889)
 -- Name: increment_comment_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -150,7 +150,7 @@ $$;
 ALTER FUNCTION public.increment_comment_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 289 (class 1255 OID 1003590)
+-- TOC entry 289 (class 1255 OID 1005890)
 -- Name: increment_post_like_counter(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -170,7 +170,7 @@ $$;
 ALTER FUNCTION public.increment_post_like_counter() OWNER TO postgres;
 
 --
--- TOC entry 290 (class 1255 OID 1003591)
+-- TOC entry 290 (class 1255 OID 1005891)
 -- Name: like_comment(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -186,7 +186,7 @@ $_$;
 ALTER FUNCTION public.like_comment(user_id integer, comment_id integer) OWNER TO postgres;
 
 --
--- TOC entry 291 (class 1255 OID 1003592)
+-- TOC entry 291 (class 1255 OID 1005892)
 -- Name: like_post(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -202,7 +202,7 @@ $_$;
 ALTER FUNCTION public.like_post(user_id integer, post_id integer) OWNER TO postgres;
 
 --
--- TOC entry 292 (class 1255 OID 1003593)
+-- TOC entry 292 (class 1255 OID 1005893)
 -- Name: post(integer, character varying); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -219,7 +219,7 @@ $_$;
 ALTER FUNCTION public.post(user_id integer, content character varying) OWNER TO postgres;
 
 --
--- TOC entry 293 (class 1255 OID 1003594)
+-- TOC entry 298 (class 1255 OID 1005894)
 -- Name: record_comment(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -230,7 +230,7 @@ declare
 	keyname text := '';
 	value text := '';
 BEGIN
-	value := record_to_text(NEW);
+	value := record_to_text(hstore(new));
 	keyname := 'comment ' || new.comment_id;
 	update user_shards set shard = shard  || hstore(keyname , value) where user_id  = new.poster_id;
 	RETURN NEW;
@@ -241,7 +241,7 @@ $$;
 ALTER FUNCTION public.record_comment() OWNER TO postgres;
 
 --
--- TOC entry 294 (class 1255 OID 1003595)
+-- TOC entry 299 (class 1255 OID 1005895)
 -- Name: record_liked_comments(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -252,7 +252,7 @@ declare
 	keyname text := '';
 	value text := '';
 BEGIN
-	value := record_to_text(new);
+	value := record_to_text(hstore(new));
 	keyname := 'liked_comment ' || new.user_id || '-' || new.comment_id ;
 	update user_shards set shard = shard  || hstore(keyname , value) where user_id  = new.user_id;
 	RETURN new;
@@ -263,7 +263,7 @@ $$;
 ALTER FUNCTION public.record_liked_comments() OWNER TO postgres;
 
 --
--- TOC entry 295 (class 1255 OID 1003596)
+-- TOC entry 296 (class 1255 OID 1005896)
 -- Name: record_liked_post(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -274,7 +274,7 @@ declare
 	keyname text := '';
 	value text := '';
 BEGIN
-	value := record_to_text(new);
+	value := record_to_text(hstore(new));
 	keyname := 'liked_post ' || new.user_id || '-' || new.post_id ;
 	update user_shards set shard = shard  || hstore(keyname , value) where user_id  = new.user_id;
 	RETURN new;
@@ -285,7 +285,7 @@ $$;
 ALTER FUNCTION public.record_liked_post() OWNER TO postgres;
 
 --
--- TOC entry 296 (class 1255 OID 1003597)
+-- TOC entry 297 (class 1255 OID 1005897)
 -- Name: record_post(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -296,7 +296,7 @@ declare
 	keyname text := '';
 	value text := '';
 BEGIN
-	value := record_to_text(NEW);
+	value := record_to_text(hstore(new));
 	keyname := 'post ' || new.id;
 	update user_shards set shard = shard  || hstore(keyname , value) where user_id  = new.owner_id;
 	RETURN NEW;
@@ -307,28 +307,32 @@ $$;
 ALTER FUNCTION public.record_post() OWNER TO postgres;
 
 --
--- TOC entry 299 (class 1255 OID 1003598)
--- Name: record_to_text(record); Type: FUNCTION; Schema: public; Owner: postgres
+-- TOC entry 295 (class 1255 OID 1006083)
+-- Name: record_to_text(public.hstore); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.record_to_text(param record) RETURNS text
+CREATE FUNCTION public.record_to_text(row_hstore public.hstore) RETURNS text
     LANGUAGE plpgsql
     AS $$
 begin
-	--About record data type: --https://www.postgresql.org/docs/current/plpgsql-declarations.html#PLPGSQL-DECLARATION-ROWTYPES
-	--Methods to try
+	--Stringification to try
 	--https://cwestblog.com/2011/07/14/postgresql-converting-rows-into-a-string/
 	--https://stackoverflow.com/questions/31754682/postgres-aggregate-row-to-string
 	--https://stackoverflow.com/questions/24852311/how-to-convert-a-fetch-row-to-a-single-string-in-postgresql
-	RETURN array_to_string(avals(hstore(param :: record )), ', ');
+	
+	--This function used to jsut take in the row itself and turn it into an  hstore inhouse,
+	--but it ran into this problem:
+	--https://dba.stackexchange.com/questions/8119/function-performance/8189#8189
+	--About record data type: --https://www.postgresql.org/docs/current/plpgsql-declarations.html#PLPGSQL-DECLARATION-ROWTYPES
+	RETURN array_to_string(avals(row_hstore), ', ');
 END;
 $$;
 
 
-ALTER FUNCTION public.record_to_text(param record) OWNER TO postgres;
+ALTER FUNCTION public.record_to_text(row_hstore public.hstore) OWNER TO postgres;
 
 --
--- TOC entry 297 (class 1255 OID 1003599)
+-- TOC entry 293 (class 1255 OID 1005899)
 -- Name: unlike_comment(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -345,7 +349,7 @@ $_$;
 ALTER FUNCTION public.unlike_comment(user_id integer, comment_id integer) OWNER TO postgres;
 
 --
--- TOC entry 298 (class 1255 OID 1003600)
+-- TOC entry 294 (class 1255 OID 1005900)
 -- Name: unlike_post(integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -366,7 +370,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- TOC entry 203 (class 1259 OID 1003601)
+-- TOC entry 203 (class 1259 OID 1005901)
 -- Name: comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -383,7 +387,7 @@ CREATE TABLE public.comments (
 ALTER TABLE public.comments OWNER TO postgres;
 
 --
--- TOC entry 204 (class 1259 OID 1003607)
+-- TOC entry 204 (class 1259 OID 1005907)
 -- Name: comments_comment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -408,7 +412,7 @@ ALTER SEQUENCE public.comments_comment_id_seq OWNED BY public.comments.comment_i
 
 
 --
--- TOC entry 205 (class 1259 OID 1003609)
+-- TOC entry 205 (class 1259 OID 1005909)
 -- Name: liked_comments; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -421,7 +425,7 @@ CREATE TABLE public.liked_comments (
 ALTER TABLE public.liked_comments OWNER TO postgres;
 
 --
--- TOC entry 206 (class 1259 OID 1003612)
+-- TOC entry 206 (class 1259 OID 1005912)
 -- Name: liked_posts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -434,7 +438,7 @@ CREATE TABLE public.liked_posts (
 ALTER TABLE public.liked_posts OWNER TO postgres;
 
 --
--- TOC entry 207 (class 1259 OID 1003615)
+-- TOC entry 207 (class 1259 OID 1005915)
 -- Name: posts; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -450,7 +454,7 @@ CREATE TABLE public.posts (
 ALTER TABLE public.posts OWNER TO postgres;
 
 --
--- TOC entry 208 (class 1259 OID 1003621)
+-- TOC entry 208 (class 1259 OID 1005921)
 -- Name: posts_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -475,7 +479,7 @@ ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
 
 
 --
--- TOC entry 209 (class 1259 OID 1003623)
+-- TOC entry 209 (class 1259 OID 1005923)
 -- Name: top_10_posts; Type: VIEW; Schema: public; Owner: postgres
 --
 
@@ -493,7 +497,7 @@ CREATE VIEW public.top_10_posts AS
 ALTER TABLE public.top_10_posts OWNER TO postgres;
 
 --
--- TOC entry 210 (class 1259 OID 1003627)
+-- TOC entry 210 (class 1259 OID 1005927)
 -- Name: user_shards; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -506,7 +510,7 @@ CREATE TABLE public.user_shards (
 ALTER TABLE public.user_shards OWNER TO postgres;
 
 --
--- TOC entry 211 (class 1259 OID 1003633)
+-- TOC entry 211 (class 1259 OID 1005933)
 -- Name: users; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -520,7 +524,7 @@ CREATE TABLE public.users (
 ALTER TABLE public.users OWNER TO postgres;
 
 --
--- TOC entry 212 (class 1259 OID 1003639)
+-- TOC entry 212 (class 1259 OID 1005939)
 -- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
@@ -545,7 +549,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 3206 (class 2604 OID 1003641)
+-- TOC entry 3206 (class 2604 OID 1005941)
 -- Name: comments comment_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -553,7 +557,7 @@ ALTER TABLE ONLY public.comments ALTER COLUMN comment_id SET DEFAULT nextval('pu
 
 
 --
--- TOC entry 3207 (class 2604 OID 1003642)
+-- TOC entry 3207 (class 2604 OID 1005942)
 -- Name: posts id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -561,7 +565,7 @@ ALTER TABLE ONLY public.posts ALTER COLUMN id SET DEFAULT nextval('public.posts_
 
 
 --
--- TOC entry 3208 (class 2604 OID 1003643)
+-- TOC entry 3208 (class 2604 OID 1005943)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -569,7 +573,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 3366 (class 0 OID 1003601)
+-- TOC entry 3366 (class 0 OID 1005901)
 -- Dependencies: 203
 -- Data for Name: comments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -579,7 +583,7 @@ COPY public.comments (comment_id, content, date_of_creation, likes, post_id, pos
 
 
 --
--- TOC entry 3368 (class 0 OID 1003609)
+-- TOC entry 3368 (class 0 OID 1005909)
 -- Dependencies: 205
 -- Data for Name: liked_comments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -589,7 +593,7 @@ COPY public.liked_comments (user_id, comment_id) FROM stdin;
 
 
 --
--- TOC entry 3369 (class 0 OID 1003612)
+-- TOC entry 3369 (class 0 OID 1005912)
 -- Dependencies: 206
 -- Data for Name: liked_posts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -599,7 +603,7 @@ COPY public.liked_posts (user_id, post_id) FROM stdin;
 
 
 --
--- TOC entry 3370 (class 0 OID 1003615)
+-- TOC entry 3370 (class 0 OID 1005915)
 -- Dependencies: 207
 -- Data for Name: posts; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -609,7 +613,7 @@ COPY public.posts (id, owner_id, content, likes, date_of_creation) FROM stdin;
 
 
 --
--- TOC entry 3372 (class 0 OID 1003627)
+-- TOC entry 3372 (class 0 OID 1005927)
 -- Dependencies: 210
 -- Data for Name: user_shards; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -619,7 +623,7 @@ COPY public.user_shards (user_id, shard) FROM stdin;
 
 
 --
--- TOC entry 3373 (class 0 OID 1003633)
+-- TOC entry 3373 (class 0 OID 1005933)
 -- Dependencies: 211
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -656,7 +660,7 @@ SELECT pg_catalog.setval('public.users_id_seq', 1, false);
 
 
 --
--- TOC entry 3210 (class 2606 OID 1003645)
+-- TOC entry 3210 (class 2606 OID 1005945)
 -- Name: comments comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -665,7 +669,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3214 (class 2606 OID 1003647)
+-- TOC entry 3214 (class 2606 OID 1005947)
 -- Name: liked_comments liked_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -674,7 +678,7 @@ ALTER TABLE ONLY public.liked_comments
 
 
 --
--- TOC entry 3216 (class 2606 OID 1003649)
+-- TOC entry 3216 (class 2606 OID 1005949)
 -- Name: liked_posts liked_posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -683,7 +687,7 @@ ALTER TABLE ONLY public.liked_posts
 
 
 --
--- TOC entry 3220 (class 2606 OID 1003651)
+-- TOC entry 3220 (class 2606 OID 1005951)
 -- Name: posts posts_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -692,7 +696,7 @@ ALTER TABLE ONLY public.posts
 
 
 --
--- TOC entry 3223 (class 2606 OID 1003653)
+-- TOC entry 3223 (class 2606 OID 1005953)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -701,7 +705,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 3211 (class 1259 OID 1003654)
+-- TOC entry 3211 (class 1259 OID 1005954)
 -- Name: comments_post_id_hash; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -709,7 +713,7 @@ CREATE INDEX comments_post_id_hash ON public.comments USING hash (post_id);
 
 
 --
--- TOC entry 3212 (class 1259 OID 1003655)
+-- TOC entry 3212 (class 1259 OID 1005955)
 -- Name: comments_poster_id_hash; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -717,7 +721,7 @@ CREATE INDEX comments_poster_id_hash ON public.comments USING hash (poster_id);
 
 
 --
--- TOC entry 3217 (class 1259 OID 1003656)
+-- TOC entry 3217 (class 1259 OID 1005956)
 -- Name: like_index; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -725,7 +729,7 @@ CREATE INDEX like_index ON public.posts USING btree (likes);
 
 
 --
--- TOC entry 3218 (class 1259 OID 1003657)
+-- TOC entry 3218 (class 1259 OID 1005957)
 -- Name: posts_owner_id_hash; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -733,7 +737,7 @@ CREATE INDEX posts_owner_id_hash ON public.posts USING hash (owner_id);
 
 
 --
--- TOC entry 3221 (class 1259 OID 1003658)
+-- TOC entry 3221 (class 1259 OID 1005958)
 -- Name: user_shards_user_id_idx; Type: INDEX; Schema: public; Owner: postgres
 --
 
@@ -741,7 +745,7 @@ CREATE INDEX user_shards_user_id_idx ON public.user_shards USING hash (user_id);
 
 
 --
--- TOC entry 3232 (class 2620 OID 1003659)
+-- TOC entry 3232 (class 2620 OID 1005959)
 -- Name: liked_comments add_to_comment_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -749,7 +753,7 @@ CREATE TRIGGER add_to_comment_like AFTER INSERT ON public.liked_comments FOR EAC
 
 
 --
--- TOC entry 3235 (class 2620 OID 1003660)
+-- TOC entry 3235 (class 2620 OID 1005960)
 -- Name: liked_posts add_to_post_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -757,7 +761,7 @@ CREATE TRIGGER add_to_post_like AFTER INSERT ON public.liked_posts FOR EACH ROW 
 
 
 --
--- TOC entry 3231 (class 2620 OID 1003661)
+-- TOC entry 3231 (class 2620 OID 1005961)
 -- Name: comments record_comment_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -765,7 +769,7 @@ CREATE TRIGGER record_comment_trigger AFTER INSERT OR UPDATE ON public.comments 
 
 
 --
--- TOC entry 3233 (class 2620 OID 1003662)
+-- TOC entry 3233 (class 2620 OID 1005962)
 -- Name: liked_comments record_liked_comment_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -773,7 +777,7 @@ CREATE TRIGGER record_liked_comment_trigger AFTER INSERT OR UPDATE ON public.lik
 
 
 --
--- TOC entry 3236 (class 2620 OID 1003663)
+-- TOC entry 3236 (class 2620 OID 1005963)
 -- Name: liked_posts record_liked_commentt_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -781,7 +785,7 @@ CREATE TRIGGER record_liked_commentt_trigger AFTER INSERT OR UPDATE ON public.li
 
 
 --
--- TOC entry 3238 (class 2620 OID 1003664)
+-- TOC entry 3238 (class 2620 OID 1005964)
 -- Name: posts record_post_trigger; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -789,7 +793,7 @@ CREATE TRIGGER record_post_trigger AFTER INSERT OR UPDATE ON public.posts FOR EA
 
 
 --
--- TOC entry 3234 (class 2620 OID 1003665)
+-- TOC entry 3234 (class 2620 OID 1005965)
 -- Name: liked_comments subtract_from_comment_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -797,7 +801,7 @@ CREATE TRIGGER subtract_from_comment_like AFTER DELETE ON public.liked_comments 
 
 
 --
--- TOC entry 3237 (class 2620 OID 1003666)
+-- TOC entry 3237 (class 2620 OID 1005966)
 -- Name: liked_posts subtract_from_post_like; Type: TRIGGER; Schema: public; Owner: postgres
 --
 
@@ -805,7 +809,7 @@ CREATE TRIGGER subtract_from_post_like AFTER DELETE ON public.liked_posts FOR EA
 
 
 --
--- TOC entry 3224 (class 2606 OID 1003667)
+-- TOC entry 3224 (class 2606 OID 1005967)
 -- Name: comments comments_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -814,7 +818,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3225 (class 2606 OID 1003672)
+-- TOC entry 3225 (class 2606 OID 1005972)
 -- Name: comments comments_poster_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -823,7 +827,7 @@ ALTER TABLE ONLY public.comments
 
 
 --
--- TOC entry 3226 (class 2606 OID 1003677)
+-- TOC entry 3226 (class 2606 OID 1005977)
 -- Name: liked_comments liked_comments_comment_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -832,7 +836,7 @@ ALTER TABLE ONLY public.liked_comments
 
 
 --
--- TOC entry 3227 (class 2606 OID 1003682)
+-- TOC entry 3227 (class 2606 OID 1005982)
 -- Name: liked_comments liked_comments_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -841,7 +845,7 @@ ALTER TABLE ONLY public.liked_comments
 
 
 --
--- TOC entry 3228 (class 2606 OID 1003687)
+-- TOC entry 3228 (class 2606 OID 1005987)
 -- Name: liked_posts liked_posts_post_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -850,7 +854,7 @@ ALTER TABLE ONLY public.liked_posts
 
 
 --
--- TOC entry 3229 (class 2606 OID 1003692)
+-- TOC entry 3229 (class 2606 OID 1005992)
 -- Name: liked_posts liked_posts_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -859,7 +863,7 @@ ALTER TABLE ONLY public.liked_posts
 
 
 --
--- TOC entry 3230 (class 2606 OID 1003697)
+-- TOC entry 3230 (class 2606 OID 1005997)
 -- Name: posts user_foreign_key; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -867,7 +871,7 @@ ALTER TABLE ONLY public.posts
     ADD CONSTRAINT user_foreign_key FOREIGN KEY (owner_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
--- Completed on 2020-07-14 15:07:17 EDT
+-- Completed on 2020-07-17 14:18:58 EDT
 
 --
 -- PostgreSQL database dump complete
