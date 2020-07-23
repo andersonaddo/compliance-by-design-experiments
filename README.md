@@ -34,3 +34,6 @@ where nspname not in ('pg_catalog','information_schema', 'pg_toast')
 order by pg_total_relation_size(c.oid) desc;
 ```
 
+I've also made a quick [Google Colab](https://colab.research.google.com) notebook (`pg_bench_to_csv.ipynb`)
+that converts pg_bench progress outputs to csv format for easy analysis.
+
