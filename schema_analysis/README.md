@@ -12,8 +12,11 @@ This folder contains info on certain schemas of open-source applications that we
 - [GhChat (sql)](https://github.com/aermin/ghChat/blob/master/server/init/sql/ghchat.sql)
 - [Instagram Clone (sql)](https://github.com/yTakkar/Instagram-clone/blob/master/instagram.sql)
 - [Instagram Clone 2.0 (sql)](https://github.com/yTakkar/React-Instagram-Clone-2.0/blob/master/db.sql)
-- [HotCRP Paper review system (sql)](
-https://github.com/kohler/hotcrp/blob/master/src/schema.sql)
+- [HotCRP Paper review system (sql)](https://github.com/kohler/hotcrp/blob/master/src/schema.sql)
+- [Schnack](https://github.com/schn4ck/schnack/tree/master/migrations)
+- [Commento](https://github.com/adtac/commento/blob/master/db/20180416163802-init-schema.sql)
+- [Mouthful](https://github.com/vkuznecovas/mouthful/blob/master/db/sqlxDriver/postgres/postgres.go)
+
 
 
 ## Schema Visualization And Analysis Tools
