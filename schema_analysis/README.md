@@ -135,9 +135,7 @@ This is a relatively nuanced problem, and is worth thinking about.
 
 As stated before, cycles are trivial, but for the sake of thoroughness, a real life example of one is still provided below. This is from the [PrestaShop Schema](schemas/PrestaShop.sql).
 
-<img src="diagrams/PrestaShopCycle.png" alt="prestaloop" width="350"/>
-
-
+<img src="diagrams/prestashopcycle.png" alt="prestaloop" width="350"/>
 
 Here is a link of one table that's involved in the cycle (so you can trace for yourself):
 
