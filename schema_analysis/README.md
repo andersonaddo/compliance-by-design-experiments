@@ -53,7 +53,7 @@ Some ways this system could guess foreign key links is through the naming patter
 
 Now, assuming that this system could effecting infer all these links, there are three ways it can decide to handle this constructed map. 
 
-1. The first method is to automatically make indexes on each of the tables that end up being part of the map. So, for example, if the system figures out that `customer_id` in the `purchases`  table is a FK to the `customers` table, then it would automatically make an index on the `purchases` table on the `customer_id` field. Then , assuming that customer submits an SAR, the system would perform queries on all the automatically generated indexes (though these queries might not always correlate to the ID of the customer; more on that later), and report all the results.
+1. The first method is to automatically make indexes on each of the tables that end up being part of the map. So, for example, if the system figures out that `customer_id` in the `purchases`  table is a FK to the `customers` table, then it would automatically make an index on the `purchases` table on the `customer_id` field. Once a customer submits an SAR, the system would perform queries on all the automatically generated indexes (though these queries might not always correlate to the ID of the customer; more on that later), and report all the results.
 2. The second method is similar to method 1, but instead of having one index per table, the system would use a custom composite table that contains all the information needed to respond to any SAR. Such an index would likely contain nested indexes grouped by user ID.
 3. Lastly, it could decide not to use indexes at all. Instead, it could decide to crawl the map on demand when an SAR is submitted, going through all the links and collecting all the records that are needed. As will be explained, this system has more pitfalls than the first too, but saves space and prevents possible write overheads of additional indexes.
 
@@ -61,21 +61,25 @@ Now, assuming that this system could effecting infer all these links, there are 
 
 So, this report is meant to be a report to give anyone who is designing or implementing any of these systems an idea of certain pitfalls and caveats of the problem space.
 
+## Assumptions
+
+We assume that the schema contains a single table with one row for each user, which we refer to as the _User Record_. User records typically contain at least some ssensitive information, such as a password hash.
+
 ## The patterns observed
 
 <img src="diagrams/LinkTypes.png" alt="linktypes" width="300" align = "left"/> This diagram shows the 4 different types of FK links that we saw in the schemas that we observed. They'll be explained from top to bottom:
 
-**Forward Link (FL)**: This is a FK link that points further away from the user record. It can also be from between two normal records, but the main point is that the link flowed form a record that is "closer" to the user's record (in the users table) to one that is "further".
+**Forward Link (FL)**: This is a FK link that points further away from the user record. It can also be from between two normal records, but the main point is that the link flows from a record that is "closer" to the user's record (in the users table) to one that is "further" (in terms of the number of steps taken).
 
 **Backwards Link (BL)**: These are essentially the opposite of FLs, and they can also be between two normal records. So, they flow from a record that is further from a user record to one that is closer.
 
 **Inferred Link (IL)**: In practice, these were only observed to be BLs, but in theory they can also be FLs as well. Inferred links are links between tables that use something other than the primary key of the table being linked (like, for example, linking to the users table using `email` instead of `user_id`).
 
-**Ghost Link (GL)**: These are essentially non-existent links that *should* exist between tables, but don't. A classic example is a table that stores IPs and sessions but doesn't give information about which user performed which session. This is a problem that can't be solved by our hypothetical system, but is still something we kept note of.s
+**Ghost Link (GL)**: These are essentially non-existent links that *should* exist between tables, but don't. A classic example is a table that stores IPs and sessions but doesn't give information about which user performed which session. This is a problem that can't be solved by our hypothetical system, but is still something we kept note of.
 
 Examples of maps with all of these will be shown later (all from the schemas we observed).
 
-So, in general, it was observed that BLs are more common than FLs, and FLs coming directly from a user record are especially uncommon. Inferred links (and especially ghost links) in general were very uncommon, but did occur nonetheless (link, in session recording).
+So, in general, it was observed that BLs are more common than FLs, and FLs coming directly from a user record are especially uncommon. Inferred links (and especially ghost links) in general were very uncommon, but did occur nonetheless (e.g., in session recording).
 
 ## Immediate Things to Think About
 
@@ -89,7 +93,7 @@ A more significant issue comes to light when one considers considers security. I
 
 <img src="diagrams/SecurityIntro.png" alt="securityintro" width="500"/>
 
-The record with the skull near it is a record that contains sensitive information that the SAR has no business knowing (server configurations, password hashes, IP addresses, whatever). If the wrong decision is made by the system, this sentive information could be reported in the SAR (which would be a security breach). In this map, without the intervention of the schema designer, there's no reason for the system not to return the full results of both leaf records. It would not be enough to just completely ignore records Wirth sensitive information, however. That could leave certain parts of the map completely unaccessible because links that lead to or come from the blocked our records will be lost. Additionally, those records could have information that *isn't* sensitive and needs to be reported in the SAR. Below is a hypothetical example of a map where both of these possibilities are true:
+The record with the skull near it is a record that contains sensitive information that the SAR has no business knowing (server configurations, password hashes, IP addresses, whatever). If the wrong decision is made by the system, this sensitive information could be reported in the SAR (which would be a security breach). In this map, without the intervention of the schema designer, there's no reason for the system not to return the full results of both leaf records. It would not be enough to just completely ignore records with sensitive information, however. That could leave certain parts of the map completely unaccessible because links that lead to or come from the blocked our records will be lost. Additionally, those records could have information that *isn't* sensitive and needs to be reported in the SAR. Below is a hypothetical example of a map where both of these possibilities are true:
 
 <img src="diagrams/SecurityComplex.png" alt="securitycomplex" width="500"/>
 
@@ -125,7 +129,7 @@ This map introduces a new problem, one that is unique to an on-demand crawler im
 
 Depending on how the system keeps track of the IDs that it should be using in subsequent queries, there could be problems with options 2 and 3, particularly because messages sent by the SAR subject to groups he/she is no longer a member of could be accidentally skipped or lost. This also depends on how the systems treats Forward Links and Back Links. Suffice to say, for an on-demand crawler, the order of traversal, the management of IDs currently being tracked, and the distinction of FLs and BLs matters more.
 
-Index based approaches could also suffer from similar problems. Though the messages are still going to be in the indexes after the user has left, the issue of entry points and which paths to take could affect which columns are chosen to be indexed by the automatically generated indexes index, and queries that are automatically generated for the SAR queries. Approach 2 would suffer less from this, because when an SAR is submitted, less queries have to be performed - you just submit everything in the nested index structure that's in that user's ID group. But approach 1 could face some issues, since lots of queries have to be performed to generate the SAR form the automatically generated index. 
+Index based approaches could also suffer from similar problems. Though the messages are still going to be in the indexes after the user has left, the issue of entry points and which paths to take could affect which columns are chosen to be indexed by the automatically generated indexes, and queries that are automatically generated for the SAR queries. Approach 2 would suffer less from this, because when an SAR is submitted, less queries have to be performed - you just submit everything in the nested index structure that's in that user's ID group. But approach 1 could face some issues, since lots of queries have to be performed to generate the SAR form the automatically generated index.
 
 One way to possibly solve this for Approach 1 would be so make custom index types (rather than the build in Postgres generics like hash indexes or btree indexes) where reach row is stored in the index not by a particular column they have, but just by the user they belong to. So, for example, assume you have a table `likes`, which has the columns `post_id` and `post_liker` . Assuming the SAR sender is the author of this liked post, instead of making an index that indexes `post_id` (which could be tranced back to the SAR sender's user record via some map path), you could make an index that ads a virtual column to the table called `post_owner` which correlates to the post owner directly. This way, the concept of choosing a tracing path (which could end up missing things due to changes over time) isn't needed - you can just use virtual columns within each table, similar to `Select * from table where [virtual_index_name] = x`.
 
