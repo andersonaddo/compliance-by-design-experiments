@@ -174,3 +174,28 @@ Regardless, if session management is a common place to find ghost and inferred l
 <img src="diagrams/phew.gif" alt="phew" width="300"/>
 
 I hope this report has at least gotten your head jogging about the different caveats and gotchas of the problem space! The [Draw.io](https://app.diagrams.net/) diagrams have been made available in the `diagrams` folder, and thanks to [GIPHY](https://giphy.com) for the gifs :)
+
+
+
+## Addendums 
+
+<img src="diagrams/butwaittheresmore.gif" alt="butwaittheresmore" width="300"/>
+
+These were added after the initial report as our explorations continued.
+
+### #1
+
+We decided to add some diagrams or larger schemas than just ghChat. So we're added full SAR maps for [Instagram2.0](schemas/isntagram 2.0) and [Lobsters](schemas/lobsters.rb). To prevent clogging, we decided not to add skulls to all the user record nodes (which were the only sensitive nodes in both maps), but assume that there's one next to each.
+
+Here's the map for Lobsters:
+
+<kbd>
+<img src="diagrams/lobsters.png" alt="lobsers" width="800"/>
+</kbd>
+
+
+And here's the diagram for Instagram 2.0:
+
+<kbd>
+<img src="diagrams/instagram2.png" alt="instagram2" width="800"/>
+</kbd>
