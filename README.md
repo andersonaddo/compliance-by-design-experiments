@@ -2,8 +2,9 @@
 <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/31/Brown_University_coat_of_arms.svg/1200px-Brown_University_coat_of_arms.svg.png" alt="brown_logo" width="20"/> <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Postgresql_elephant.svg/1200px-Postgresql_elephant.svg.png" alt="postgres_logo" width="30"/>
 
 This repo contains the pg_dumps of some Postgres projects used to benchmark and evaluate some different approaches to making conventional databases GDPR compliant.
+That's not the only thing this repo has, however. There are also some reports and whatnot on related issues.
 
-The original experiment environment was a combination of [Postgress.app](https://postgresapp.com/) (Using Postgres 12) and [DBeaver Community Edition](https://dbeaver.io/).
+The original experiment environment was a combination of [Postgress.app](https://postgresapp.com/) (using Postgres 12) and [DBeaver Community Edition](https://dbeaver.io/) on a 2018 Macbook Pro (2.3 GHz Quad-Core Intel Core i5 Processor, 8 GB 2133 MHz LPDDR3 RAM).
 
 ### Environment Setup Tips
 It might be useful to enable logging in your Postgres installation. More info on that can be found [here](https://www.endpoint.com/blog/2014/11/12/dear-postgresql-where-are-my-logs). Additionally, if you're using postgres.app, your config log will be located in: 
