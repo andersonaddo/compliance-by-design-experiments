@@ -199,3 +199,28 @@ And here's the diagram for Instagram 2.0:
 <kbd>
 <img src="diagrams/instagram2.png" alt="instagram2" width="800"/>
 </kbd>
+
+
+
+### #2
+
+So there are three useful insights to have here:
+
+1. It's worth noting that even though these SAR maps are presented as directed graphs, for all intents and purposes they are undirected. One can traverse a forward link or a back link in any direction; the only reason these edges are classified as forward or back is to indicate the direction in which their keys themselves point .
+
+   For example, look at the SAR map for Instagram 2.0. Assume the system had constructed this map in its entirety, and now started its traversal. If it wanted to go from Comments to Posts, it would simply make a query like this:
+
+   `select * from posts where id = <value of a comment id>`
+
+   And if we wanted to from Post to comments (in the opposite direction of the edge), it would be a query like:
+
+   `select * from comments where post_id = <value of a post id>`
+
+   Of course this would only work if the graph is complete at the time of traversal, because at that point the system would know the source and destination of every edge.
+
+2. It's also worth noting that it can't be safely assumed that any table only has to be visited once. For example, consider the comments table in the lobster map. The fastest way to get to that table would be from the commenter node (which is an alias for the user table). If you get to the comments table from there, then you'd pick up all the comments that that user posted. Assume that this user was also a mod, though, and that he has moderated a few abusive comments. Then, to get this information, you'd have to go from Mod > Moderation > Comments. 
+3. Lastly, it worth noting that its also not entirely trivial to know when to end a traversal early. For example, if the system was compiling all the bookmarks that the user had created (in Instagram 2.0), it would traverse like so: Bookmarker > Bookmark > Post. After that, there's no real reason to continue the traversal, even though we haven't reached a leaf node to formally end it. There's also no reason so continue and traverse all the other branches that can flow from the Post node (like flowing into Hastags). If the system were to be compiling all the posts that the user posted themselves, it would go: Poster > Post. But should it flow into Shares as well? What about likes? It certainly shouldn't flow into notifications though, should it? That could be considered private.
+
+Points 2 and 3 show that semantic and contextual information about the database and its graph is necessary to make traversal smart and efficient. The graph itself isn't enough. This type of information is not possible for a system to pick up automatically, and would be a hassle for the schema designer to define explicitly for the system. So, the system will likely have to explore *all* paths in *full* unless it is stopped by redaction.
+
+This is a problem, because this essentially becomes a system that is attempting to explore all paths between all pairs of leaf nodes of an undirected graph. This is an explosive computation.
