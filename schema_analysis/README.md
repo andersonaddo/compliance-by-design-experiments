@@ -224,3 +224,16 @@ So there are three useful insights to have here:
 Points 2 and 3 show that semantic and contextual information about the database and its graph is necessary to make traversal smart and efficient. The graph itself isn't enough. This type of information is not possible for a system to pick up automatically, and would be a hassle for the schema designer to define explicitly for the system. So, the system will likely have to explore *all* paths in *full* unless it is stopped by redaction.
 
 This is a problem, because this essentially becomes a system that is attempting to explore all paths between all pairs of leaf nodes of an undirected graph. This is an explosive computation.
+
+### #3
+
+Just a thought: 
+
+Before, I was thinking that one way to reduce the number of paths that might have to be traversed is by merging paths. For example, looking at the Instagram 2.0 graph, imagine that the system was trying to merge these two paths:
+
+`Liker > Likes > Posts > Comments > Commenter`
+
+`Admin > Groups > Posts > Commetns > Commenter`
+
+I was thinking that it might have been a good idea to merge there two graphs at the Posts node such, so that the `Posts > Comments > Commenter` sub-path wouldn't have to be repeated. I now realize, however, that this might be a bit of a  messy optimization. What about things like path-specific redaction? Like, for example, what if it is decided that the Admin should see more about the commenters in their SAR report that the Liker?  What if it were merging paths that don't all end at once (Like, for examine, the Liker path ending at Comments and the Admin path ending at Commenter)? Should they be merged in the first place? Or should we find a way to remove the records that came from the shorter path once it ends (so that those records compiled because of the Liker path don't bleed into the the queries used against the Commenter node).
+
