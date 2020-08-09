@@ -1,0 +1,34 @@
+#/usr/local/lib/python3.6/dist-packages/ipykernel_launcher.py -f /root/.local/share/jupyter/runtime/kernel-f234baa9-4d4f-4fe9-a80e-a46df8001af6.json
+# GMT Sun Aug  9 02:52:21 2020
+# 
+anyuser. mod.
+mod. hat modnotes domain moderation
+modnotes modsub.
+modsub. moderation
+hat hatowner. messages comments
+hatowner.
+messages messagereceiver. messagesender.
+messagereceiver.
+messagesender.
+comments commenter. votes stories comments moderation
+commenter.
+votes stories voter.
+voter.
+saver. savedstories
+savedstories stories
+stories storycreator. stories moderation domain tagging sugtag sugtitle hidden readribbon
+storycreator.
+readribbon readribboncreator.
+readribboncreator.
+hidden hiddencreator.
+hiddencreator.
+moderation domain tag
+domain
+tagging tag
+tag tagfilter sugtag
+tagfilter tagfiltercreator.
+tagfiltercreator.
+sugtag sugtagsubject.
+sugtagsubject.
+sugtitle sugtitlesubject.
+sugtitlesubject.

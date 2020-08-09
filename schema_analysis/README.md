@@ -237,3 +237,7 @@ Before, I was thinking that one way to reduce the number of paths that might hav
 
 I was thinking that it might have been a good idea to merge there two graphs at the Posts node such, so that the `Posts > Comments > Commenter` sub-path wouldn't have to be repeated. I now realize, however, that this might be a bit of a  messy optimization. What about things like path-specific redaction? Like, for example, what if it is decided that the Admin should see more about the commenters in their SAR report that the Liker?  What if it were merging paths that don't all end at once (Like, for examine, the Liker path ending at Comments and the Admin path ending at Commenter)? Should they be merged in the first place? Or should we find a way to remove the records that came from the shorter path once it ends (so that those records compiled because of the Liker path don't bleed into the the queries used against the Commenter node).
 
+### #4
+
+I've added a [Google Colab Notebook](colab_files/) (along with some importable SAR maps) that can be useful for analyzing SAR maps and all the possible paths that can be taken.
+
