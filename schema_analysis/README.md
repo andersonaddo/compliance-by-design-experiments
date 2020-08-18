@@ -65,7 +65,7 @@ We assume that the database schema contains a single table with one row for each
 
 <img src="diagrams/LinkTypes.png" alt="linktypes" width="300" align = "left"/> This diagram shows the 4 different types of FK links that we saw in the schemas that we observed. They'll be explained from top to bottom:
 
-**Forward Link (FL)**: This is a FK link that points further away from the user record. It can also be from between two normal records, but the main point is that the link flows from a record that is "closer" to the user's record (in the users table) to one that is "further" (in terms of the number of steps taken).
+**Forward Link (FL)**: This is a FK link that points further away from the user record. It can also be from between two normal records, but the main point is that the link flows from a record that is "closer" to the user's record (in the users table) to one that is "further" (in terms of the number of steps taken from the source user record of the path).
 
 **Backwards Link (BL)**: These are essentially the opposite of FLs, and they can also be between two normal records. So, they flow from a record that is further from a user record to one that is closer.
 
@@ -249,3 +249,29 @@ I don't think that the notion of the SAR graph should be completely disregarded.
 
 1. We should use a nested index based approach. One massive index structure, with a subindex for every user, *could* suffice. This will likely prevent the entry point problem.
 2. Unfortunately, it looks like the system will need more upfront information from the developer than initially thought. I think the safest approach would be for the developer to be presented wit the graph, and for them to specify what every user alias (eg Voter, Commenter, Poster, etc) should see in their report. A good interface could make this rather fast and intuitive.
+
+### #7: Some schema statistics
+
+**How were these counted?**
+
+For every cluster of connected nodes, we chose an arbitrary user record node to be our only reference point for the counting. This is because a BL for one user record node could be a FL for another one. Also note that counts like these are somewhat pedantically difficult due to certain things like cycles (where a link can be both a BL and a FL depending on the path you take). To handle this, we only counted a link as a BL if it couldn't be counted as a FL via a different path. Ghost and inferred links are not considered to be BLs or FLs in this count (so they're only counted once).
+
+Obviously, there are different ways to count the links in an SAR graph, and that depends not he purpose of your counting. Also, since information gathered via an SAR graph depends not he path taken, that means that different information can be gotten if a link is traded as a BL or a FL. Only use these counts to  gauge the size of the SAR graph for each schema - they don't hold much meaning beyond that.
+
+| **Database name**       | Back Links     | Forward Links  | Inferred Links | Ghost Links    | Self Links     |
+| ----------------------- | -------------- | -------------- | -------------- | -------------- | -------------- |
+| PrestaShop <sup>†</sup> | Not counted    | Not counted    | Not counted    | Not counted    | Not counted    |
+| Commento                | 3              | 7              | 0              | 0              | 1              |
+| GhChat                  | 3              | 4              | 0              | 0              | 0              |
+| HotCRP                  | Not counted    | Not counted    | Not counted    | Not counted    | Not counted    |
+| Instagram 2.0           | 15             | 25             | 0              | 0              | 0              |
+| Lobsters                | 16             | 25             | 2              | 0              | 3              |
+| Mouthful*               | Not applicable | Not applicable | Not applicable | Not applicable | Not applicable |
+| OpenCart <sup>†</sup>   | Not counted    | Not counted    | Not counted    | Not counted    | Not counted    |
+| Schnack                 | 1              | 1              | 0              | 0              | 0              |
+| Socify                  | 17             | 7              | 0              | 0              | 0              |
+
+<sup>†</sup> Not counted due to schema size, might be done later
+
+*Mouthful schema doesn't have a dedicated user table.
+
