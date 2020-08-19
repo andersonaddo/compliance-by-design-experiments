@@ -1,7 +1,7 @@
 # Compliance by Design Experiments
 <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/31/Brown_University_coat_of_arms.svg/1200px-Brown_University_coat_of_arms.svg.png" alt="brown_logo" height="40"/> <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Postgresql_elephant.svg/1200px-Postgresql_elephant.svg.png" alt="postgres_logo" height="40"/>
 
-This repo contains the work I did for the Compliance by Design research project during the summer of 2020 as my [UTRA](https://www.brown.edu/academics/college/fellowships/utra/).
+This repo contains the work I did for the Compliance by Design research project during the summer of 2020 as my [UTRA](https://www.brown.edu/academics/college/fellowships/utra/). [UTRA poster link](https://repository.library.brown.edu/studio/item/bdr:1138465/).
 
 ## What is *Compliance by Design*?
 
