@@ -49,6 +49,8 @@ Finally, we explored (mostly conceptually) the last two logical sharding methods
 
 By the time you finish reading the last section, you'd have a good idea of the understanding we had at the end of summer 2020 of the problem and the validity of different solutions.
 
+The slides to the presentations I used to present this work to my research group have also been provided.
+
 ## Environment Setup 
 
 My experimental environment was a combination of [Postgress.app](https://postgresapp.com/) (using Postgres 12) and [DBeaver Community Edition](https://dbeaver.io/) on a 2018 Macbook Pro (2.3 GHz Quad-Core Intel Core i5 Processor, 8 GB 2133 MHz LPDDR3 RAM).
